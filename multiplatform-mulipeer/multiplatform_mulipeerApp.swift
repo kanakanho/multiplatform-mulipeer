@@ -9,9 +9,11 @@ import SwiftUI
 
 @main
 struct multiplatform_mulipeerApp: App {
+    @ObservedObject private var peerManager = PeerManager()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(peerManager:peerManager)
         }
     }
 }

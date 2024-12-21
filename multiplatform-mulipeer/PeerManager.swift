@@ -8,12 +8,14 @@
 import MultipeerConnectivity
 
 class PeerManager: NSObject, ObservableObject {
-    @Published var receivedMessages: [String] = []
     @Published var receivedMessage: String = ""
     
+    @Published var sendMessagePeerList: [MCPeerID] = []
+    @Published var isHost: Bool!
+    
     private let serviceType = "example-chat"
-    private var peerID: MCPeerID!
-    private var session: MCSession!
+    @Published var peerID: MCPeerID!
+    @Published var session: MCSession!
     private var advertiser: MCNearbyServiceAdvertiser!
     private var browser: MCNearbyServiceBrowser!
     
@@ -33,7 +35,11 @@ class PeerManager: NSObject, ObservableObject {
         browser.startBrowsingForPeers()
     }
     
-    func sendMessage(_ message: String) {
+    func firstSendMessage() {
+        sendMessageForAll("Hello")
+    }
+    
+    func sendMessageForAll(_ message: String) {
         guard !session.connectedPeers.isEmpty else { return }
         guard let messageData = message.data(using: .utf8) else { return }
         
@@ -45,6 +51,32 @@ class PeerManager: NSObject, ObservableObject {
             }
         }
     }
+    
+    func sendMessage(_ message: String) {
+        guard let messageData = message.data(using: .utf8) else { return }
+        
+        DispatchQueue.global(qos: .userInitiated).async {
+            do {
+                try self.session.send(messageData, toPeers: self.sendMessagePeerList, with: .unreliable)
+            } catch {
+                print("Error sending message: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    func addSendMessagePeer(peerIDHash: Int) {
+        for peer in session.connectedPeers {
+            if peer.hash == peerIDHash {
+                sendMessagePeerList.append(peer)
+                break
+            }
+        }
+        print("Error Not found peerID")
+    }
+    
+    func decisionHost(isHost: Bool) {
+        self.isHost = isHost
+    }
 }
 
 extension PeerManager: MCSessionDelegate {
@@ -53,12 +85,10 @@ extension PeerManager: MCSessionDelegate {
     }
     
     func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
-        // duble型に変換してからString型に変換
         if let message = String(data: data, encoding: .utf8) {
             print("Received: \(message)")
             DispatchQueue.main.async {
                 self.receivedMessage = message
-//                self.receivedMessages.append("\(peerID.displayName): \(message)")
             }
         }
     }
