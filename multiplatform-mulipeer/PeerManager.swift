@@ -57,8 +57,8 @@ extension PeerManager: MCSessionDelegate {
         if let message = String(data: data, encoding: .utf8) {
             print("Received: \(message)")
             DispatchQueue.main.async {
-                self.receivedMessage = message
-//                self.receivedMessages.append("\(peerID.displayName): \(message)")
+//                self.receivedMessage = message
+                self.receivedMessages.append("\(peerID.displayName)\t\(peerID.hash)\t: \(message)")
             }
         }
     }

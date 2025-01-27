@@ -9,22 +9,9 @@ struct ContentView: View {
         VStack {
             Text("Received Messages:")
                 .font(.headline)
-            
-            Text(peerManager.receivedMessage)
             List(peerManager.receivedMessages.reversed(), id: \.self) { msg in
                 Text(msg)
             }
-            
-            HStack {
-                TextField("Enter message", text: $message)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                
-                Button("Send") {
-                    sendCurrentTime()
-                }
-                .disabled(message.isEmpty)
-            }
-            .padding()
         }
         .padding()
         .onAppear {
@@ -42,7 +29,7 @@ struct ContentView: View {
     }
     
     private func startSendingUnixTime() {
-        timer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { _ in
+        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             sendCurrentTime()
         }
     }
